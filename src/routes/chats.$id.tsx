@@ -4,9 +4,9 @@ import { ChatsPage } from "@/components/arpan/personal";
 export const Route = createFileRoute("/chats/$id")({
   head: () => ({ meta: [
     { title: 'Community conversation — ARPAN' },
-    { name: "description", content: 'Connect privately within a demo seva or institution community chat.' },
+    { name: "description", content: 'Connect privately within a Seva or community chat.' },
     { property: "og:title", content: 'Community conversation — ARPAN' },
-    { property: "og:description", content: 'Connect privately within a demo seva or institution community chat.' },
+    { property: "og:description", content: 'Connect privately within a Seva or community chat.' },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),

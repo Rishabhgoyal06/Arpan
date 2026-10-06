@@ -44,9 +44,21 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+import { handleRegistration } from "./server/auth";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/api/auth/register" && request.method === "POST") {
+        const payload = await request.json();
+        const result = await handleRegistration(payload);
+        return new Response(JSON.stringify(result), {
+          status: result.error ? (result.status ?? 400) : 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

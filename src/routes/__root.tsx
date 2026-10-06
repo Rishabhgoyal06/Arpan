@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AuthProvider } from "@/lib/arpan/auth";
 import { ArpanProvider } from "@/lib/arpan/state";
 import { Shell } from "@/components/arpan/shared";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ArpanProvider><Shell><Outlet /></Shell></ArpanProvider>
+      <AuthProvider>
+        <ArpanProvider><Shell><Outlet /></Shell></ArpanProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

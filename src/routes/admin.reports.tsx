@@ -3,10 +3,10 @@ import { AdminPage } from "@/components/arpan/admin";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({ meta: [
-    { title: 'Reports — ARPAN Demo Moderation' },
-    { name: "description", content: 'Frontend-only community review, privacy and safety moderation. No production verification.' },
-    { property: "og:title", content: 'Reports — ARPAN Demo Moderation' },
-    { property: "og:description", content: 'Frontend-only community review, privacy and safety moderation. No production verification.' },
+    { title: 'Reports — ARPAN Community Moderation' },
+    { name: "description", content: 'Community review, privacy and safety moderation workspace.' },
+    { property: "og:title", content: 'Reports — ARPAN Community Moderation' },
+    { property: "og:description", content: 'Community review, privacy and safety moderation workspace.' },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
   ] }),
