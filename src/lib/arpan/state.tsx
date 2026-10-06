@@ -1,0 +1,11 @@
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { demoEntries, type Entry } from './data';
+export type Message = { text: string; sender: string; time: string; reply?: string };
+type State = { entries: Entry[]; addEntry: (entry:Entry)=>void; joined: string[]; toggleJoin:(id:string)=>void; saved:string[]; toggleSave:(id:string)=>void; reflections: Record<string,string>; saveReflection:(id:string,text:string)=>void; messages:Record<string,Message[]>; sendMessage:(id:string,message:Message)=>void; privacy:Record<string,boolean>; setPrivacy:(value:Record<string,boolean>)=>void; name:string; setName:(name:string)=>void; read:string[]; markRead:()=>void; };
+const Context = createContext<State | null>(null);
+export function ArpanProvider({children}:{children:ReactNode}) {
+ const [entries,setEntries]=useState(demoEntries); const [joined,setJoined]=useState<string[]>([]); const [saved,setSaved]=useState<string[]>([]); const [reflections,setReflections]=useState<Record<string,string>>({'seva-2':'The kitchen was busy, but there was room to listen. I noticed how much patience lives in the ordinary act of preparing a meal together.'}); const [messages,setMessages]=useState<Record<string,Message[]>>({}); const [privacy,setPrivacy]=useState<Record<string,boolean>>({'Show my name':true,'Show my profile photo':true,'Show my skills':true,'Show my offers':true,'Show my needs':false,'Participate privately':false}); const [name,setName]=useState('Ananya'); const [read,setRead]=useState<string[]>([]);
+ const toggle=(setter:React.Dispatch<React.SetStateAction<string[]>>,id:string)=>setter(items=>items.includes(id)?items.filter(x=>x!==id):[...items,id]);
+ return <Context.Provider value={{entries,addEntry:entry=>setEntries(items=>[entry,...items]),joined,toggleJoin:id=>toggle(setJoined,id),saved,toggleSave:id=>toggle(setSaved,id),reflections,saveReflection:(id,text)=>setReflections(items=>({...items,[id]:text})),messages,sendMessage:(id,message)=>setMessages(items=>({...items,[id]:[...(items[id]??[]),message]})),privacy,setPrivacy,name,setName,read,markRead:()=>setRead(['n1','n2','n3','n4','n5'])}}>{children}</Context.Provider>;
+}
+export function useArpan(){ const context=useContext(Context); if(!context) throw new Error('ARPAN context is unavailable'); return context; }
