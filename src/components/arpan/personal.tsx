@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useParams } from '@tanstack/react-router';
-import { Check, EyeOff, Leaf, Send, ShieldCheck, Sprout, Bell, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Link, useParams, useNavigate } from '@tanstack/react-router';
+import { Check, EyeOff, Leaf, Send, ShieldCheck, Sprout, Bell, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useArpan } from '@/lib/arpan/state';
 import { useAuth } from '@/lib/arpan/auth';
 import { submitReport } from '@/lib/arpan/api';
+import { MindfulGraph } from './insights';
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -45,18 +46,23 @@ export function JourneyPage() {
         ))}
       </div>
       <div className="discovery-tabs">
-        {['My Seva', 'Reflections', 'Saved'].map((t) => (
+        {['My Seva', 'Reflections', 'Saved', 'Insights'].map((t) => (
           <Button
             key={t}
             variant="ghost"
             className={tab === t ? 'active' : ''}
             onClick={() => setTab(t)}
           >
+            {t === 'Insights' && <Sparkles size={14} className="mr-1 inline-block text-serve" />}
             {t}
           </Button>
         ))}
       </div>
-      {tab === 'My Seva' ? (
+      {tab === 'Insights' ? (
+        <div className="max-w-2xl mx-auto py-4">
+          <MindfulGraph userId={useAuth().user?.id || ''} />
+        </div>
+      ) : tab === 'My Seva' ? (
         <>
           {joined.length ? (
             <div className="entry-grid">
@@ -223,6 +229,13 @@ export function ReflectionPage() {
           <p className="reflection-footnote">
             No audience. No expectations. Just a little room to notice.
           </p>
+          <div className="quiet-note" style={{ marginTop: '40px', borderTop: '1px solid var(--border)', paddingTop: '30px' }}>
+            <p style={{ fontStyle: 'italic', color: 'var(--muted-foreground)', fontSize: '12px', lineHeight: 1.6 }}>
+              “Experience is the only teacher we have. We may talk and reason all our lives, but we shall not understand a word of truth until we experience it ourselves.”
+              <br />
+              <span style={{ fontSize: '10px', marginTop: '12px', display: 'block', fontStyle: 'normal', letterSpacing: '1px', textTransform: 'uppercase' }}>— Swami Vivekananda</span>
+            </p>
+          </div>
         </>
       )}
     </div>
@@ -232,6 +245,7 @@ export function ReflectionPage() {
 export function ProfilePage() {
   const { name, setName, entries, joined, reflections, privacy: preferences, setPrivacy } = useArpan();
   const { user, profile, updateProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [value, setValue] = useState(profile?.display_name || name);
   const [about, setAbout] = useState(profile?.bio || '');
   const [skills, setSkills] = useState(profile?.skills || '');
@@ -257,6 +271,26 @@ export function ProfilePage() {
     setStatus('Your profile has been saved and updated.');
   };
 
+  if (!user) {
+    return (
+      <div className="page-container">
+        <PageHeading
+          eyebrow="YOUR SPACE IN THE COMMUNITY"
+          title="Sign in to view your profile"
+          description="Your personal reflections, privacy settings, and community offerings are kept private to your account."
+          action={
+            <Button asChild>
+              <Link to="/login">Sign in</Link>
+            </Button>
+          }
+        />
+        <div className="empty-state">
+          <p>Please sign in or create an account to manage your profile and view your journey.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <PageHeading
@@ -264,7 +298,13 @@ export function ProfilePage() {
         title="A person, not a role."
         description="You are more than what you give, or what you need."
         action={
-          <Button variant="outline" onClick={() => signOut()}>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await signOut();
+              navigate({ to: '/login' });
+            }}
+          >
             Sign out
           </Button>
         }
@@ -280,7 +320,7 @@ export function ProfilePage() {
         </div>
       </div>
       <div className="discovery-tabs">
-        {['About me', 'What I offer', 'What I need', 'My Seva', 'My reflections', 'Privacy'].map(
+        {['About me', 'Insights', 'What I offer', 'What I need', 'My Seva', 'My reflections', 'Privacy'].map(
           (t) => (
             <Button
               key={t}
@@ -288,6 +328,7 @@ export function ProfilePage() {
               className={tab === t ? 'active' : ''}
               onClick={() => setTab(t)}
             >
+              {t === 'Insights' && <Sparkles size={14} className="mr-1 inline-block text-serve" />}
               {t}
             </Button>
           )
@@ -343,6 +384,10 @@ export function ProfilePage() {
           <Button type="submit">Save your changes</Button>
           <p role="status">{status}</p>
         </form>
+      ) : tab === 'Insights' ? (
+        <div className="max-w-2xl mx-auto py-4">
+          <MindfulGraph userId={user.id} />
+        </div>
       ) : tab === 'Privacy' ? (
         <div className="profile-form">
           <h2>Your story is yours.</h2>

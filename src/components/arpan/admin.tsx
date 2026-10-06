@@ -163,7 +163,11 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
         <section className="audit-log">
           <h3>Audit log</h3>
           {allAuditLogs.map((a, i) => (
-            <p key={i}>{a}</p>
+            <p key={i}>
+              {typeof a === 'string'
+                ? a
+                : `[${a.created_at ? new Date(a.created_at).toLocaleTimeString() : 'Recent'}] ${a.action} on ${a.target_type} ${a.target_id || ''}`}
+            </p>
           ))}
         </section>
       )}
@@ -222,3 +226,4 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
     </div>
   );
 }
+

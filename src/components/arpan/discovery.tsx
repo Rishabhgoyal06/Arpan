@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { Search, SlidersHorizontal, X, MapPin, ArrowUpRight, Sun, Bookmark, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Search, SlidersHorizontal, X, MapPin, ArrowUpRight, Sun, Moon, Bookmark, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useArpan } from '@/lib/arpan/state';
+import { useAuth } from '@/lib/arpan/auth';
 import { categories, type Kind } from '@/lib/arpan/data';
 import { ActionGrid, PageHeading, EntryCard, DemoNote, Empty } from './shared';
 
@@ -20,7 +21,8 @@ export function Discovery({
   kind?: Kind;
   dedicated?: boolean;
 }) {
-  const { entries, saved } = useArpan();
+  const { entries, saved, joined } = useArpan();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All categories');
   const [location, setLocation] = useState('All locations');
@@ -33,10 +35,26 @@ export function Discovery({
   const [skill, setSkill] = useState('');
   const [availability, setAvailability] = useState('Any availability');
 
-  const filtered = entries.filter(
-    (e) =>
-      e.kind === kind &&
-      e.privacy !== 'Matched-only' &&
+  const filtered = entries.filter((e) => {
+    if (e.kind !== kind) return false;
+
+    if (dedicated) {
+      if (!user) return false;
+
+      if (kind === 'offers') {
+        if (e.creator_id !== user.id) return false;
+      } else if (kind === 'needs') {
+        if (e.creator_id !== user.id) return false;
+      } else if (kind === 'seva') {
+        const isHost = e.creator_id === user.id;
+        const isJoined = joined.includes(e.id);
+        if (!isHost && !isJoined) return false;
+      }
+    } else {
+      if (e.privacy === 'Matched-only') return false;
+    }
+
+    return (
       `${e.title} ${e.context} ${e.category}`.toLowerCase().includes(search.toLowerCase()) &&
       (category === 'All categories' || e.category === category) &&
       (location === 'All locations' || e.location === location) &&
@@ -49,7 +67,8 @@ export function Discovery({
         (time === 'Afternoon' && (e.time || '').includes('PM'))) &&
       (!skill || `${e.title} ${e.category}`.toLowerCase().includes(skill.toLowerCase())) &&
       (availability === 'Any availability' || availability === 'Weekends')
-  );
+    );
+  });
 
   function reset() {
     setSearch('');
@@ -67,20 +86,28 @@ export function Discovery({
   return (
     <div className="page-container">
       <PageHeading
-        eyebrow={dedicated ? 'OUR COMMUNITY' : 'CONNECTION BEGINS WITH CURIOSITY'}
+        eyebrow={dedicated ? 'YOUR PARTICIPATION' : 'CONNECTION BEGINS WITH CURIOSITY'}
         title={
           dedicated
             ? kind === 'offers'
-              ? 'Offer what you can.'
+              ? 'Your Offers'
               : kind === 'needs'
-              ? 'It’s okay to ask.'
+              ? 'Your Requests'
               : kind === 'institutions'
               ? 'Stand with a community.'
-              : 'Find a place to be present.'
+              : 'Your Sevas'
             : 'Find your way to connect.'
         }
         description={
-          kind === 'needs'
+          dedicated
+            ? kind === 'offers'
+              ? 'Offers you have created and shared with the community.'
+              : kind === 'needs'
+              ? 'Requests for support you have asked for with dignity.'
+              : kind === 'seva'
+              ? 'Sevas you are hosting or have taken Sankalp to join.'
+              : 'Community partners and shared initiatives.'
+            : kind === 'needs'
             ? 'Every request is a person’s story. Meet it with care.'
             : 'A little time, a shared skill, a moment of presence. Begin where you are.'
         }
@@ -109,13 +136,15 @@ export function Discovery({
           ) : undefined
         }
       />
-      <div className="discovery-tabs" role="navigation" aria-label="Discovery categories">
-        {tabs.map((t) => (
-          <Link key={t.kind} to={t.to} className={kind === t.kind ? 'active' : ''}>
-            {t.name}
-          </Link>
-        ))}
-      </div>
+      {!dedicated && (
+        <div className="discovery-tabs" role="navigation" aria-label="Discovery categories">
+          {tabs.map((t) => (
+            <Link key={t.kind} to={t.to} className={kind === t.kind ? 'active' : ''}>
+              {t.name}
+            </Link>
+          ))}
+        </div>
+      )}
       <div className="filter-bar">
         <label className="search-field">
           <Search size={18} />
@@ -209,7 +238,15 @@ export function Discovery({
       <div className="results-heading">
         <p>
           {filtered.length}{' '}
-          {kind === 'seva'
+          {dedicated
+            ? kind === 'seva'
+              ? filtered.length === 1 ? 'Seva you host or joined' : 'Sevas you host or joined'
+              : kind === 'offers'
+              ? filtered.length === 1 ? 'offer shared by you' : 'offers shared by you'
+              : kind === 'needs'
+              ? filtered.length === 1 ? 'request asked by you' : 'requests asked by you'
+              : 'communities to meet'
+            : kind === 'seva'
             ? 'ways to show up'
             : kind === 'institutions'
             ? 'communities to meet'
@@ -217,7 +254,11 @@ export function Discovery({
             ? 'offers to connect with'
             : 'requests to meet with care'}
         </p>
-        <span>Everyone has something to offer.</span>
+        <span>
+          {dedicated
+            ? 'Your personal participation in the community.'
+            : 'Everyone has something to offer.'}
+        </span>
       </div>
       {filtered.length ? (
         <div className="entry-grid">
@@ -225,6 +266,74 @@ export function Discovery({
             <EntryCard key={e.id} entry={e} />
           ))}
         </div>
+      ) : dedicated && !user ? (
+        <Empty
+          title="Sign in to view your activity"
+          text={`Sign in to see the ${kind === 'needs' ? 'requests' : kind === 'offers' ? 'offers' : 'Sevas'} you host, join or request.`}
+        >
+          <div className="mt-4 flex gap-2 justify-center">
+            <Button asChild>
+              <Link to="/login">Sign in</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={kind === 'needs' ? '/explore/needs' : kind === 'offers' ? '/explore/offers' : '/explore/seva'}>
+                Explore community {kind}
+              </Link>
+            </Button>
+          </div>
+        </Empty>
+      ) : dedicated && user ? (
+        <Empty
+          title={
+            kind === 'offers'
+              ? 'You have not created any offers yet.'
+              : kind === 'needs'
+              ? 'You have not submitted any requests yet.'
+              : kind === 'seva'
+              ? 'You have not hosted or joined any Sevas yet.'
+              : 'Nothing found.'
+          }
+          text={
+            kind === 'offers'
+              ? 'Everyone has something to share. Offer a skill, some time, or care.'
+              : kind === 'needs'
+              ? 'Needing support is part of being human. Share what would help you with dignity.'
+              : kind === 'seva'
+              ? 'Join a community Seva by taking Sankalp or host an initiative yourself.'
+              : 'Try exploring community spaces.'
+          }
+        >
+          <div className="mt-4 flex gap-2 justify-center">
+            {kind === 'offers' ? (
+              <>
+                <Button asChild>
+                  <Link to="/offer/create"><Plus /> Offer something</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/explore/offers">Explore community offers</Link>
+                </Button>
+              </>
+            ) : kind === 'needs' ? (
+              <>
+                <Button asChild>
+                  <Link to="/ask/create"><Plus /> Ask for support</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/explore/needs">Explore community requests</Link>
+                </Button>
+              </>
+            ) : kind === 'seva' ? (
+              <>
+                <Button asChild>
+                  <Link to="/seva/create"><Plus /> Host Seva</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/explore/seva">Explore community Seva</Link>
+                </Button>
+              </>
+            ) : null}
+          </div>
+        </Empty>
       ) : (
         <Empty
           title={kind === 'needs' ? 'No requests here right now.' : 'Nothing nearby right now.'}
@@ -239,16 +348,22 @@ export function Discovery({
 
 export function HomePage() {
   const { entries, name, joined } = useArpan();
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const [greeting, setGreeting] = useState('Welcome');
+  const [Icon, setIcon] = useState(() => Sun);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
+    setIcon(hour < 17 ? () => Sun : () => Moon);
+  }, []);
 
   return (
     <div className="page-container">
       <div className="home-welcome">
         <span>
-          <Sun size={19} /> A NEW MOMENT TO BEGIN
+          <Icon size={19} /> A NEW MOMENT TO BEGIN
         </span>
-        <h1>{greeting}, {name}.</h1>
+        <h1 suppressHydrationWarning>{greeting}, {name}.</h1>
         <p>What would you like to do?</p>
       </div>
       <ActionGrid />
@@ -284,9 +399,9 @@ export function HomePage() {
       <div className="quiet-note">
         <SproutIcon />
         <p>
-          “You don’t need to be a hero.
+          “This is the gist of all worship — to be pure and to do good to others.”
           <br />
-          You can simply show up.”
+          <span style={{ fontSize: '10px', marginTop: '8px', display: 'block', color: 'var(--muted-foreground)', letterSpacing: '1px' }}>— SWAMI VIVEKANANDA</span>
         </p>
       </div>
       <DemoNote />

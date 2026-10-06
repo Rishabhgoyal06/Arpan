@@ -24,6 +24,7 @@ export type Entry = {
   verified: boolean;
   privacy: string;
   help: string;
+  creator_id?: string | null;
 };
 
 export const categories = [

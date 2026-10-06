@@ -519,6 +519,7 @@ export async function fetchAllUnifiedEntries(): Promise<Entry[]> {
     verified: o.verified,
     privacy: o.privacy,
     help: o.help_details || 'Offering time and care with humility.',
+    creator_id: o.creator_id,
   }));
 
   const needEntries: Entry[] = needs.map((n) => ({
@@ -537,6 +538,7 @@ export async function fetchAllUnifiedEntries(): Promise<Entry[]> {
     verified: n.verified,
     privacy: n.privacy,
     help: n.help_details || 'Seeking support with dignity and care.',
+    creator_id: n.creator_id,
   }));
 
   const sevaEntries: Entry[] = sevas.map((s) => ({
@@ -556,6 +558,7 @@ export async function fetchAllUnifiedEntries(): Promise<Entry[]> {
     verified: s.verified,
     privacy: 'Public',
     help: s.roles_description || 'Hands-on participation and support.',
+    creator_id: s.organizer_id,
   }));
 
   const institutionEntries: Entry[] = institutions.map((i) => ({

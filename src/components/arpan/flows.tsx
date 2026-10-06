@@ -208,6 +208,13 @@ export function CreationFlow({ type }: { type: FlowType }) {
               : 'Thank you for offering what feels possible.'
           }
         >
+          {type !== 'ask' && (
+            <div style={{ marginTop: '20px', marginBottom: '30px', fontStyle: 'italic', color: 'var(--muted-foreground)', fontSize: '12px', lineHeight: 1.6 }}>
+              “The great secret of true success, of true happiness, is this: the man or woman who asks for no return, the perfectly unselfish person, is the most successful.”
+              <br />
+              <span style={{ fontSize: '10px', marginTop: '12px', display: 'block', fontStyle: 'normal', textTransform: 'uppercase', letterSpacing: '1px' }}>— Swami Vivekananda</span>
+            </div>
+          )}
           <div className="success-actions">
             <Button asChild>
               <Link to={type === 'support' ? '/institutions' : '/home'}>Return to the community</Link>
@@ -513,6 +520,7 @@ export function DetailPage({ kind }: { kind: 'seva' | 'needs' | 'offers' | 'inst
   const [connected, setConnected] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [role, setRole] = useState('Hands-on support');
+  const [messageText, setMessageText] = useState('');
 
   if (!entry)
     return (
@@ -790,7 +798,12 @@ export function DetailPage({ kind }: { kind: 'seva' | 'needs' | 'offers' | 'inst
           ) : (
             <label>
               Your message
-              <textarea placeholder="I would be glad to help with…" rows={3} />
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="I would be glad to help with…"
+                rows={3}
+              />
             </label>
           )}
           <label className="check-label">

@@ -26,17 +26,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
 
     async function initAuth() {
+      if (!isLiveSupabaseConfigured) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        if (isLiveSupabaseConfigured) {
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          if (mounted && currentSession) {
-            setSession(currentSession);
-            setUser(currentSession.user);
-            await loadProfile(currentSession.user.id, currentSession.user);
-          }
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('Error fetching Supabase session:', error);
+        }
+        if (mounted && currentSession?.user) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await loadProfile(currentSession.user.id, currentSession.user);
         }
       } catch (err) {
-        console.error('Error initializing auth session:', err);
+        console.warn('Error initializing auth session:', err);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -45,16 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     if (isLiveSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
         if (!mounted) return;
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        if (newSession?.user) {
-          await loadProfile(newSession.user.id, newSession.user);
-        } else {
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          if (newSession?.user) {
+            setSession(newSession);
+            setUser(newSession.user);
+            await loadProfile(newSession.user.id, newSession.user);
+          }
+          setLoading(false);
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
           setProfile(null);
+          setLoading(false);
+        } else if (event === 'INITIAL_SESSION') {
+          if (newSession?.user) {
+            setSession(newSession);
+            setUser(newSession.user);
+            await loadProfile(newSession.user.id, newSession.user);
+          }
+          setLoading(false);
         }
-        setLoading(false);
       });
 
       return () => {
