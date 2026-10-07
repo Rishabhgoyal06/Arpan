@@ -20,9 +20,11 @@ import {
   GraduationCap,
   Accessibility,
   Wrench,
+  Flag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useArpan } from '@/lib/arpan/state';
+import { submitReport } from '@/lib/arpan/api';
 import { submitInstitutionSupport } from '@/lib/arpan/api';
 import { DemoNote, PageHeading, Success, EntryCard } from './shared';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -776,6 +778,24 @@ export function DetailPage({ kind }: { kind: 'seva' | 'needs' | 'offers' | 'inst
           <Button variant="outline" onClick={() => toggleSave(entry.id)}>
             {saved.includes(entry.id) ? 'Saved' : 'Save for later'}
           </Button>
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+            <Button
+              variant="ghost"
+              style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--muted-foreground)', fontSize: '13px' }}
+              onClick={() => {
+                submitReport({
+                  target_type: kind,
+                  target_id: entry.id,
+                  reason: 'Community Guidelines review requested',
+                  details: 'User initiated flag from flow details.'
+                });
+                alert('Thank you. A community moderator will review this request to ensure it aligns with ARPAN\'s dignity principles.');
+              }}
+            >
+              <Flag size={14} style={{ marginRight: '8px' }} />
+              Protect Dignity & Report
+            </Button>
+          </div>
           <DemoNote />
         </aside>
       </div>

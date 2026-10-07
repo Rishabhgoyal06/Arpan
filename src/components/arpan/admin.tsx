@@ -4,7 +4,7 @@ import { ShieldCheck, FileText, Search, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useArpan } from '@/lib/arpan/state';
-import { useAuditLogs, useRecordAuditAction, useUsersForAdmin, useReports } from '@/lib/arpan/queries';
+import { useAuditLogs, useRecordAuditAction, useUsersForAdmin, useReports, useVerifyEntry } from '@/lib/arpan/queries';
 import { PageHeading } from './shared';
 
 const pages = [
@@ -23,6 +23,7 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
   const { data: adminUsers = [] } = useUsersForAdmin();
   const { data: adminReports = [] } = useReports();
   const recordAuditMutation = useRecordAuditAction();
+  const verifyMutation = useVerifyEntry();
 
   const [search, setSearch] = useState('');
   const [review, setReview] = useState<string | null>(null);
@@ -59,6 +60,7 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
           )
           .map((e) => ({
             id: e.id,
+            kind: e.kind,
             title: e.title,
             category: e.category,
             date: e.date || 'Recent',
@@ -212,6 +214,12 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
                       ...a,
                     ]);
                     recordAuditMutation.mutate({ action: `${status} for ${review}`, notes });
+                    if (status === 'Verified') {
+                      const reviewedEntry = rows.find(r => r.id === review);
+                      if (reviewedEntry && reviewedEntry.kind) {
+                        verifyMutation.mutate({ id: review, kind: reviewedEntry.kind });
+                      }
+                    }
                   }
                   setReview(null);
                   setNotes('');
@@ -226,4 +234,5 @@ export function AdminPage({ section = 'Overview' }: { section?: string }) {
     </div>
   );
 }
+
 

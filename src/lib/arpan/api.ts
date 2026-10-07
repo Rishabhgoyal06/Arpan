@@ -416,6 +416,11 @@ export async function markAllNotificationsRead(userId?: string): Promise<void> {
   await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
 }
 
+export async function createNotification(notification: { user_id: string; type: string; title: string; message: string; action_url?: string }): Promise<void> {
+  if (!isLiveSupabaseConfigured) return;
+  await supabase.from('notifications').insert(notification);
+}
+
 // =========================================================================
 // REPORTS & MODERATION (SAFETY & AUDIT)
 // =========================================================================
@@ -449,6 +454,14 @@ export async function updateReportStatus(reportId: string, status: 'reviewed' | 
   if (!isLiveSupabaseConfigured) return;
   const { error } = await supabase.from('reports').update({ status }).eq('id', reportId);
   if (error) throw error;
+}
+
+export async function verifyEntry(id: string, kind: string): Promise<void> {
+  if (!isLiveSupabaseConfigured) return;
+  if (kind === 'offers') await supabase.from('offers').update({ verified: true, status: 'active' }).eq('id', id);
+  if (kind === 'needs') await supabase.from('needs').update({ verified: true, status: 'verified' }).eq('id', id);
+  if (kind === 'seva') await supabase.from('sevas').update({ verified: true, status: 'active' }).eq('id', id);
+  if (kind === 'institutions') await supabase.from('institutions').update({ verified: true, status: 'active' }).eq('id', id);
 }
 
 export async function recordAuditAction(action: string, notes?: string, userId?: string): Promise<void> {

@@ -88,6 +88,20 @@ export function ArpanProvider({ children }: { children: ReactNode }) {
         status: 'active',
         verified: false,
       });
+
+      if (userId) {
+         const matches = unifiedEntries.filter((e: Entry) => e.kind === 'needs' && e.category === entry.category && (e.location === entry.location || e.location === 'Online' || entry.location === 'Online'));
+         if (matches.length > 0) {
+            await api.createNotification({
+              user_id: userId,
+              type: 'system',
+              title: 'Your offering is needed',
+              message: `A neighbor has requested support with ${entry.category}. Remember that service is an opportunity for your own growth.`,
+              action_url: `/explore/needs`
+            });
+         }
+      }
+
     } else if (entry.kind === 'needs') {
       await createNeedMutation.mutateAsync({
         creator_id: userId ?? null,
@@ -106,6 +120,20 @@ export function ArpanProvider({ children }: { children: ReactNode }) {
         status: 'submitted',
         verified: false,
       });
+
+      if (userId) {
+         const matches = unifiedEntries.filter((e: Entry) => e.kind === 'offers' && e.category === entry.category && (e.location === entry.location || e.location === 'Online' || entry.location === 'Online'));
+         if (matches.length > 0) {
+            await api.createNotification({
+              user_id: userId,
+              type: 'system',
+              title: 'A community connection awaits',
+              message: `Someone nearby has offered to help with ${entry.category}. Connect with patience and let the community hold this space.`,
+              action_url: `/explore/offers`
+            });
+         }
+      }
+
     } else if (entry.kind === 'seva') {
       await createSevaMutation.mutateAsync({
         organizer_id: userId ?? null,

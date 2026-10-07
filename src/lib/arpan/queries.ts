@@ -266,3 +266,17 @@ export function useRecordAuditAction(userId?: string) {
     },
   });
 }
+
+export function useVerifyEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, kind }: { id: string; kind: string }) => api.verifyEntry(id, kind),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.entries });
+      queryClient.invalidateQueries({ queryKey: queryKeys.offers });
+      queryClient.invalidateQueries({ queryKey: queryKeys.needs });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sevas });
+      queryClient.invalidateQueries({ queryKey: queryKeys.institutions });
+    },
+  });
+}
