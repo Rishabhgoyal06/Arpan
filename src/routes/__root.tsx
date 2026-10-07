@@ -8,7 +8,8 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { LanguageProvider } from "@/lib/arpan/i18n";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -16,6 +17,33 @@ import { AuthProvider } from "@/lib/arpan/auth";
 import { ArpanProvider } from "@/lib/arpan/state";
 import { Shell } from "@/components/arpan/shared";
 import { Button } from "@/components/ui/button";
+
+function VivekanandaLoader() {
+  const quotes = [
+    "They alone live, who live for others.",
+    "Unselfishness is God.",
+    "Feel, my children, feel; feel for the poor, the ignorant, the downtrodden.",
+    "The giver receives more than the receiver."
+  ];
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % quotes.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="vivekananda-loader">
+      <div className="loader-content" key={index}>
+        <h2 className="quote-text">"{quotes[index]}"</h2>
+        <p className="quote-author">— Swami Vivekananda</p>
+      </div>
+      <div className="loading-bar"></div>
+    </div>
+  );
+}
 
 function NotFoundComponent() {
   return (
@@ -92,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
-  pendingComponent: () => <div role="status" aria-live="polite" className="empty-state"><p>Making a little room for your community…</p></div>,
+  pendingComponent: VivekanandaLoader,
 });
 
 function RootShell({ children }: { children: ReactNode }) {
@@ -128,7 +156,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ArpanProvider><Shell><Outlet /></Shell></ArpanProvider>
+        <LanguageProvider><ArpanProvider><Shell><Outlet /></Shell></ArpanProvider></LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

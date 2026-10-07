@@ -25,6 +25,7 @@ import {
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { useArpan } from '@/lib/arpan/state';
+import { useLanguage } from '@/lib/arpan/i18n';
 import type { Entry } from '@/lib/arpan/data';
 
 import { useAuth } from '@/lib/arpan/auth';
@@ -110,7 +111,29 @@ export function ThemeToggle() {
   );
 }
 
+export function LanguageSelector() {
+  const { lang, setLang } = useLanguage();
+  return (
+    <select 
+      value={lang} 
+      onChange={(e) => setLang(e.target.value as any)}
+      className="language-selector"
+      aria-label="Select language"
+      style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px 8px', fontSize: '13px', color: 'var(--foreground)', cursor: 'pointer', outline: 'none' }}
+    >
+      <option value="en">English</option>
+      <option value="hi">हिंदी (Hindi)</option>
+      <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      <option value="ta">தமிழ் (Tamil)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="mr">मराठी (Marathi)</option>
+      <option value="bn">বাংলা (Bengali)</option>
+    </select>
+  );
+}
+
 export function Shell({ children }: { children: ReactNode }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
@@ -158,7 +181,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <nav className="public-nav" aria-label="Main navigation">
           {!isAuthenticated ? (
             <>
-              <Link to="/explore">Explore</Link>
+              <Link to="/explore">{t('nav.explore')}</Link>
               <Link to="/about">About ARPAN</Link>
               <Link to="/philosophy">Our philosophy</Link>
               <Link to="/how-it-works">How it works</Link>
@@ -172,10 +195,11 @@ export function Shell({ children }: { children: ReactNode }) {
             <>
               {publicPage && path !== '/home' && (
                 <Button variant="ghost" asChild>
-                  <Link to="/home">Community Home</Link>
+                  <Link to="/home">{t('nav.home')}</Link>
                 </Button>
               )}
-              <ThemeToggle />
+              <LanguageSelector />
+          <ThemeToggle />
               <Button variant="ghost" size="icon" asChild title="Notifications">
                 <Link aria-label="Notifications" to="/notifications">
                   <Bell />
@@ -188,7 +212,8 @@ export function Shell({ children }: { children: ReactNode }) {
             </>
           ) : (
             <>
-              <ThemeToggle />
+              <LanguageSelector />
+          <ThemeToggle />
               <Link className="login-link" to="/login">
                 Log in
               </Link>
@@ -217,14 +242,14 @@ export function Shell({ children }: { children: ReactNode }) {
             <>
               {nav.map((n) => (
                 <Link key={n.to} to={n.to}>
-                  {n.label}
+                  {t('nav.' + n.label.toLowerCase())}
                 </Link>
               ))}
               <Link to="/profile">Profile</Link>
             </>
           ) : (
             <>
-              <Link to="/explore">Explore</Link>
+              <Link to="/explore">{t('nav.explore')}</Link>
               <Link to="/about">About ARPAN</Link>
               <Link to="/philosophy">Our philosophy</Link>
               <Link to="/how-it-works">How it works</Link>
@@ -245,7 +270,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 className={path === n.to || path.startsWith(n.to + '/') ? 'side-link active' : 'side-link'}
               >
                 <n.icon />
-                {n.label}
+                {t('nav.' + n.label.toLowerCase())}
               </Link>
             ))}
           </nav>
@@ -282,7 +307,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 className={path.startsWith(n.to) ? 'active' : ''}
               >
                 <n.icon />
-                {n.label}
+                {t('nav.' + n.label.toLowerCase())}
               </Link>
             ))}
           <Link to="/profile">
@@ -308,7 +333,7 @@ export function Footer() {
           <Link to="/about">About</Link>
           <Link to="/explore">Explore</Link>
         </div>
-        <small>© 2026 ARPAN · Built around dignity.</small>
+        <small>Â© 2026 ARPAN Â· Built around dignity.</small>
       </div>
     </footer>
   );
@@ -418,13 +443,13 @@ export function EntryCard({ entry }: { entry: Entry }) {
         <div className="card-location">
           <MapPin size={14} />
           {entry.location}
-          <span>·</span>
+          <span>Â·</span>
           {entry.kind === 'seva' ? (entry.date || 'Community gathering') : entry.kind === 'offers' ? 'Flexible' : 'Community-visible'}
         </div>
         <div className="card-footer">
           <span>
             {entry.kind === 'seva'
-              ? `${entry.time || '10:00 AM'} · ${entry.duration || '2 hours'}`
+              ? `${entry.time || '10:00 AM'} Â· ${entry.duration || '2 hours'}`
               : entry.kind === 'institutions'
               ? 'Time, skills & resources'
               : 'Offer what you can'}
@@ -690,4 +715,8 @@ export function SwamiVivekanandaWatermark() {
     </div>
   );
 }
+
+
+
+
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/lib/arpan/i18n';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, ArrowUpRight, HeartHandshake, Shield, EyeOff, Sprout, HandHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { useArpan } from '@/lib/arpan/state';
 import { useAuth } from '@/lib/arpan/auth';
 import { ActionGrid, EntryCard, PageHeading } from './shared';
 export function Landing(){
+  const { t } = useLanguage();
   const { entries } = useArpan();
   const { user } = useAuth();
   return <>
@@ -16,9 +18,9 @@ export function Landing(){
       <div className="container hero-content">
         <span className="hero-eyebrow"><span/> SERVE THE DIVINE IN HUMANITY</span>
         <h1>ARPAN</h1>
-        <h2 style={{ letterSpacing: '-1.5px', marginBottom: '8px' }}>"They alone live,<br/>who live for others."</h2>
+        <h2 style={{ letterSpacing: '-1.5px', marginBottom: '8px' }}>"{t('hero.title')}"</h2>
         <p style={{ letterSpacing: '1px', textTransform: 'uppercase', fontSize: '11px', opacity: 0.8, marginBottom: '20px' }}>— SWAMI VIVEKANANDA</p>
-        <p>Give what you can. Ask when you need.<br/>Serve with others.</p>
+        <p>{t('hero.subtitle')}</p>
         <div className="hero-buttons">
           {user ? (
             <Button asChild size="lg">
@@ -26,7 +28,7 @@ export function Landing(){
             </Button>
           ) : (
             <Button asChild size="lg">
-              <Link to="/signup">Begin with ARPAN <ArrowUpRight/></Link>
+              <Link to="/signup">{t('action.start')} <ArrowUpRight/></Link>
             </Button>
           )}
           <Button variant="outline" size="lg" asChild className="hero-secondary">
@@ -242,3 +244,5 @@ export function AuthPage({signup=false}:{signup?:boolean}){
     </div>
   );
 }
+
+
